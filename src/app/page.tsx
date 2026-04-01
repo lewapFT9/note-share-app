@@ -20,9 +20,7 @@ export default async function Home(props: Props) {
   const user = await currentUser();
   const userRole = (user?.publicMetadata?.role as string) || "user";
 
-  // ==========================================
-  // AKCJE DOTYCZĄCE NOTATEK
-  // ==========================================
+
   async function createNote(formData: FormData) {
     "use server";
     const { userId } = await auth();
@@ -33,7 +31,6 @@ export default async function Home(props: Props) {
     const content = formData.get("content") as string;
     const role = (user.publicMetadata?.role as string) || "user";
     
-    // Używamy zaktualizowanego imienia i nazwiska z Clerka
     const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
     const name = fullName || user.username || "Anonim";
 
@@ -70,9 +67,7 @@ export default async function Home(props: Props) {
     redirect("/?tab=notes"); 
   }
 
-  // ==========================================
-  // AKCJA AKTUALIZACJI PROFILU (NOWE)
-  // ==========================================
+
   async function updateProfile(formData: FormData) {
     "use server";
     const { userId } = await auth();
@@ -81,7 +76,6 @@ export default async function Home(props: Props) {
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
 
-    // Wysyłamy nowe dane do Clerka
     const client = await clerkClient();
     await client.users.updateUser(userId, {
       firstName: firstName || "",
@@ -92,9 +86,7 @@ export default async function Home(props: Props) {
     redirect("/?tab=account"); 
   }
 
-  // ==========================================
-  // AKCJE PANELU ADMINISTRATORA
-  // ==========================================
+
   async function deleteUserAccount(formData: FormData) {
     "use server";
     const me = await currentUser();
@@ -126,9 +118,6 @@ export default async function Home(props: Props) {
     revalidatePath("/");
   }
 
-  // ==========================================
-  // POBIERANIE DANYCH
-  // ==========================================
   const allNotes = currentUserId 
     ? await db.select().from(notes).orderBy(desc(notes.createdAt)) 
     : [];
@@ -146,7 +135,6 @@ export default async function Home(props: Props) {
     <main className="flex flex-col items-center min-h-screen p-4 md:p-10 bg-gray-100 text-black">
       <div className="w-full max-w-4xl bg-white p-6 rounded-xl shadow-lg flex flex-col gap-6">
         
-        {/* HEADER */}
         <div className="flex justify-between items-center border-b pb-4">
           <h1 className="text-2xl font-extrabold">Notatnik Cloud</h1>
           {currentUserId ? <UserButton /> : (
@@ -158,7 +146,6 @@ export default async function Home(props: Props) {
 
         {currentUserId ? (
           <>
-            {/* NAWIGACJA ZAKŁADEK */}
             <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4">
               <Link href="/?tab=notes" className={`px-4 py-2 rounded-md font-bold transition ${currentTab === "notes" ? "bg-blue-600 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
                 📋 Notatki
@@ -176,7 +163,6 @@ export default async function Home(props: Props) {
               )}
             </div>
 
-            {/* ZAKŁADKA 1: TWORZENIE NOTATKI */}
             {currentTab === "create" && (
               <form action={createNote} className="flex flex-col gap-3 bg-blue-50 p-6 rounded-lg border border-blue-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
                 <h2 className="font-bold text-blue-950 text-xl mb-2">Dodaj nową notatkę</h2>
@@ -186,7 +172,6 @@ export default async function Home(props: Props) {
               </form>
             )}
 
-            {/* ZAKŁADKA 2: LISTA NOTATEK */}
             {currentTab === "notes" && (
               <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2">
                 {allNotes.length === 0 && <p className="text-gray-500 text-center py-8">Brak notatek w bazie.</p>}
@@ -212,7 +197,6 @@ export default async function Home(props: Props) {
               </div>
             )}
 
-            {/* ZAKŁADKA 3: USTAWIENIA KONTA (NOWE) */}
             {currentTab === "account" && (
               <form action={updateProfile} className="flex flex-col gap-4 bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
                 <div>
@@ -247,7 +231,6 @@ export default async function Home(props: Props) {
               </form>
             )}
 
-            {/* POPUP (MODAL) Z TREŚCIĄ NOTATKI */}
             {activeNote && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-white p-8 rounded-xl max-w-2xl w-full shadow-2xl relative animate-in zoom-in-95">
@@ -278,16 +261,14 @@ export default async function Home(props: Props) {
               </div>
             )}
 
-            {/* ZAKŁADKA 4: PANEL ADMINISTRATORA */}
             {currentTab === "admin" && userRole === "admin" && (
               <div className="flex flex-col gap-4 border-t-4 border-red-200 pt-4 animate-in fade-in slide-in-from-bottom-2">
                 <h2 className="font-extrabold text-2xl text-red-800">🛡️ Zarządzanie Użytkownikami</h2>
-                <p className="text-sm text-gray-600 mb-2">Poniżej znajduje się lista kont. Zmiany wpływają bezpośrednio na bazę Clerk.</p>
+                <p className="text-sm text-gray-600 mb-2">Poniżej znajduje się lista kont.</p>
                 
                 {allUsers.map((u) => {
                   const targetUserRole = (u.publicMetadata?.role as string) || "user";
                   const isMe = u.id === currentUserId; 
-                  // Bezpiecznie wyciągamy imię i nazwisko do wyświetlenia w panelu
                   const userFullName = [u.firstName, u.lastName].filter(Boolean).join(" ");
 
                   return (
